@@ -1,3 +1,4 @@
 # UNO-AI-Algorithm
-This project implements an AI algorithm to play UNO game using Python.
+This project implements an intelligent decision-making agent for the UNO game using Monte Carlo Tree Search (MCTS) in Python.
 
+Team members: Zeyuan Yang, Sylvester Ampomah, William Gumirov
