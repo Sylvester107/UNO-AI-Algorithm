@@ -31,7 +31,7 @@ Where:
 - Belief is {OH2, OH3,..., OHk}, saying the sample cards that each opponents may have
 
 
-Actions = {V_Card, Next_Col, Plus_N, Sk, Rev}U{GNC}
+Actions = {V_Card, Next_Col, Plus_N, Sk, Rev}U{GNC}U{UNO}
 
 Where:
 - V_Card: Use a valid card from hand(same color or same number), 
@@ -40,6 +40,7 @@ Where:
 - Sk: Play a skip card, will skip next player, skip'= 1
 - Rev: Play a reverse card, will reverse the current direction, Cur_Dir' = -Cur_Dir
 - GNC: Get a new card if there are no valid cards in hand
+- UNO: When player has only left 2 hand cards, should do "UNO" action, announce to others; or else he will be penal by add 2 cards
 
 Transitions: S' <- T(S,A)
 
@@ -55,6 +56,9 @@ Transitions: S' <- T(S,A)
 
 
 Observations:
-
+observations are parts of the whole game state
 O(S) = (Cur_Col, Cur_Dir, Cur_Top, Skip, Sum_Plus, Hand_Cards, Opponents_Cards_Num, B)
 
+Unobservables: 
+- opponents cards details information
+- the details information for each cards remains on the deck
