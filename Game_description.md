@@ -3,7 +3,6 @@ The official Game rules description is taken from [The Rosetta UNO Game](https:/
 
 =====
 ### Official Rules For Uno Card Game 
-
 The aim of the game is to be the first player to score 500 points, achieved (usually over several rounds of play) by being the first to play all of one's own cards and scoring points for the cards still held by the other players.
 The deck consists of 108 cards: four each of "Wild" and "Wild Draw Four", and 25 each of four colors (red, yellow, green, blue). Each color consists of one zero, two each of 1 through 9, and two each of "Skip", "Draw Two", and "Reverse". These last three types are known as "action cards".
 To start a hand, seven cards are dealt to each player, and the top card of the remaining deck is flipped over and set aside to begin the discard pile. The player to the dealer's left plays first unless the first card on the discard pile is an action or Wild card (see below). On a player's turn, they must do one of the following:
@@ -19,6 +18,33 @@ Action or Wild cards have the following effects:
 | Draw Two | Next player in sequence draws two cards and misses a turn | Player to dealer's left draws two cards and misses a turn |
 | Wild | Player declares the next color to be matched; current color may be chosen | Player to dealer's left declares the first color to be matched and plays a card in it |
 | Wild Draw Four | Player declares the next color to be matched; next player in sequence draws four | Return card to the deck, shuffle, flip top card to start discard pile |
+=======
+**Objective**
+- First player to score 500 points wins. Points are collected by going out (playing every card in your hand) and adding up the values of the cards left in opponents’ hands.
+
+**Deck makeup**
+- 108 cards total.
+- Colors: red, yellow, green, blue; each color has one 0, two each of 1–9, two Skips, two Draw Twos, and two Reverses.
+- Four Wild and four Wild Draw Four cards (colorless). Skip, Draw Two, Reverse, Wild, and Wild Draw Four are action cards.
+
+**Starting a round**
+- Deal seven cards to every player.
+- Flip the top card of the remaining deck to seed the discard pile.
+- Dealer’s left-hand neighbor normally starts, unless the flipped card is an action/Wild card—apply its “first discard” effect (see Action cards) before play begins.
+
+**Turn options**
+- Play a card that matches the discard pile’s top card by color, number, or symbol.
+- Play any Wild (respecting the Wild Draw Four restriction).
+- Draw the top card from the deck and immediately play it if legal; otherwise keep it and end the turn.
+- Cards are discarded face-up; play proceeds clockwise unless affected by an action card.
+
+**Action cards (hand play vs. first discard)**
+- **Skip**: next player misses their turn; if flipped first, the player left of the dealer misses the opening turn.
+- **Reverse**: change direction of play; if flipped first, the dealer plays first and direction becomes counterclockwise.
+- **Draw Two**: next player draws two cards and skips their turn; if flipped first, the player left of the dealer draws two and skips.
+- **Wild**: current player chooses the next color; if flipped first, the player left of the dealer chooses the opening color and plays a matching card.
+- **Wild Draw Four**: current player chooses the next color and the next player draws four plus skips; if flipped first, return it to the deck, shuffle, and flip a new starting card.
+A player who draws from the deck must either play or keep that card and may play no other card from their hand on that turn.
 A player who draws from the deck must either play or keep that card and may play no other card from their hand on that turn.
 A player may play a Wild card at any time, even if that player has other playable cards.
 A player may play a Wild Draw Four card only if that player has no cards matching the current color. The player may have cards of a different color matching the current number or symbol or a Wild card and still play the Wild Draw Four card.[5] A player who plays a Wild Draw Four may be challenged by the next player in sequence (see Penalties) to prove that their hand meets this condition.
@@ -45,4 +71,7 @@ A Gamestate Includes
 
 - Command state: whether the toop discard's command is still active(commandsvalid)
 
+
+- Round state: current round number
+=======
 - Round state: current round number
