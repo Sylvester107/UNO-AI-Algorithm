@@ -1,96 +1,122 @@
-# Natural language description of GameState
-for detailed understanding of the Game check the Game_description.md
+# Game State Representation
 
-A Gamestate Includes
-- player Information: Each player's hands(cards), score and whether they are a bot( a bot in this case is the other players our algorithm will be playing with)
+> For detailed understanding of the game, check `Game_description.md`
 
-- Deck state: Draw pile(ordered List of cards), discard pile(top card is visible)
+## Natural Language Description
 
-- Turn state: current player index (pnow), play direction(clockwise but can go anticlockwise), active color(colornow), last color(last color)
+A game state includes the following components:
 
-- Command state: whether the toop discard's command is still active(commandsvalid)
+- **Player Information**: Each player's hand (cards), score, and whether they are a bot (the other players our algorithm will be playing with)
 
-- Round state: current round number
+- **Deck State**: Draw pile (ordered list of cards), discard pile (top card is visible)
 
-# Mathematical description of Gamestate
+- **Turn State**: Current player index (`pnow`), play direction (clockwise but can go anticlockwise), active color (`colornow`), last color (`lastcolor`)
 
-# Natural language description of GameState
-for detailed understanding of the Game check the Game_description.md
+- **Command State**: Whether the top discard's command is still active (`commandsvalid`)
 
-A Gamestate Includes
-- player Information: Each player's hands(cards), score and whether they are a bot( a bot in this case is the other players our algorithm will be playing with)
+- **Round State**: Current round number
 
-- Deck state: Draw pile(ordered List of cards), discard pile(top card is visible)
+---
 
-- Turn state: current player index (pnow), play direction(clockwise but can go anticlockwise), active color(colornow), last color(last color)
+## Mathematical Description
 
-- Command state: whether the toop discard's command is still active(commandsvalid)
+### 1. Players (P)
 
-- Round state: current round number
+\[ P = \{p_0, p_1, p_2, p_3\} \]
 
-# Mathematical description of Gamestate
+Each player \( p_i \) is a tuple:
 
-1. Players (P)
-P = {p0, p1, p2, p3}
-Each player pi is a tuple:
-pi = (Hi, Si, Bi)
-Hi — hand of cards
-Hi = {c1, c2, ..., c|Hi|}
-Si — cumulative score (non-negative integer)
+\[ p_i = (H_i, S_i, B_i) \]
 
-Bi — bot indicator
-1 = bot
-0 = MCTS agent
+- **\( H_i \)**: Hand of cards
+  \[ H_i = \{c_1, c_2, \ldots, c_{|H_i|}\} \]
 
-2. Deck (D)
-D = (Ddraw, Ddiscard)
-Draw pile
-Ddraw = [c1, c2, ..., cn]   (top is the last element)
-Discard pile
-Ddiscard = [c1, ..., ck]   (top is ck)
+- **\( S_i \)**: Cumulative score (non-negative integer)
+  \[ S_i \in \mathbb{Z}_{\geq 0} \]
 
-3. Turn State (T)
-T = (p_now, dir, c_now, c_last, v)
-p_now — index of current player
-{0, 1, 2, 3}
-dir — play direction
-+1 (clockwise)
--1 (counter-clockwise)
-c_now — active color
-{Blue, Green, Red, Yellow, Wild}
+- **\( B_i \)**: Bot indicator
+  - \( B_i = 1 \): Bot player
+  - \( B_i = 0 \): MCTS agent (Player 0)
 
-c_last — previous color before last change
-same domain as c_now
-v — command resolution flag
-1 = top discard card's command is pending
-0 = already resolved
+---
 
-4. Card Definition (C)
+### 2. Deck (D)
+
+\[ D = (D_{\text{draw}}, D_{\text{discard}}) \]
+
+- **Draw Pile** \( D_{\text{draw}} \):
+  \[ D_{\text{draw}} = [c_1, c_2, \ldots, c_n] \]
+  *(Note: Top card is the last element)*
+
+- **Discard Pile** \( D_{\text{discard}} \):
+  \[ D_{\text{discard}} = [c_1, \ldots, c_k] \]
+  *(Note: Top card is \( c_k \))*
+
+---
+
+### 3. Turn State (T)
+
+\[ T = (p_{\text{now}}, d, c_{\text{now}}, c_{\text{last}}, v) \]
+
+- **\( p_{\text{now}} \)**: Index of current player
+  \[ p_{\text{now}} \in \{0, 1, 2, 3\} \]
+
+- **\( d \)**: Play direction
+  - \( d = +1 \): Clockwise
+  - \( d = -1 \): Counter-clockwise
+
+- **\( c_{\text{now}} \)**: Active color
+  \[ c_{\text{now}} \in \{\text{Blue}, \text{Green}, \text{Red}, \text{Yellow}, \text{Wild}\} \]
+
+- **\( c_{\text{last}} \)**: Previous color before last change
+  \[ c_{\text{last}} \in \{\text{Blue}, \text{Green}, \text{Red}, \text{Yellow}, \text{Wild}\} \]
+
+- **\( v \)**: Command resolution flag
+  - \( v = 1 \): Top discard card's command is pending
+  - \( v = 0 \): Command already resolved
+
+---
+
+### 4. Card Definition (C)
+
 Each card is a tuple:
-c = (color, type)
-Colors
-{Blue, Green, Red, Yellow, Wild}
-Types
-{0–9, Skip, Reverse, Draw Two, Wild, Draw Four}
 
-5. Round (R)
-R > 0
+\[ c = (\text{color}, \text{type}) \]
+
+- **Colors**:
+  \[ \text{color} \in \{\text{Blue}, \text{Green}, \text{Red}, \text{Yellow}, \text{Wild}\} \]
+
+- **Types**:
+  \[ \text{type} \in \{0\text{--}9, \text{Skip}, \text{Reverse}, \text{Draw Two}, \text{Wild}, \text{Draw Four}\} \]
+
+---
+
+### 5. Round (R)
+
+\[ R \in \mathbb{Z}_{> 0} \]
+
 The current round number in the race to 500 points.
 
+---
+
 ## Partial Observability
-Player 0 (the MCTS agent) has full knowledge of its own hand:
-H0   (all card identities known)
 
-Opponent hands (players 1, 2, and 3)
-Only the hand size is known:
-|Hi|   for i ∈ {1, 2, 3}
-The identity of the cards is hidden.
-Inference of hidden hands is based on:
-The cards in our hand H0
+### Known Information
 
-Cards visible in the discard pile:
-Ddiscard
+**Player 0 (MCTS agent)** has full knowledge of its own hand:
+- \( H_0 \): All card identities are known
 
-Cards revealed through draw actions
-The remaining cards in the deck, computed relative to the initial 108-card Uno deck
-This allows the agent to maintain a probabilistic belief state over the unknown hands of players 1–3.
+**Opponent hands** (players 1, 2, and 3):
+- Only hand size is known: \( |H_i| \) for \( i \in \{1, 2, 3\} \)
+- Card identities are **hidden**
+
+### Inference Sources
+
+Hidden hands can be inferred probabilistically using:
+
+1. **Cards in our hand**: \( H_0 \)
+2. **Cards visible in discard pile**: \( D_{\text{discard}} \)
+3. **Cards revealed through draw actions**: Observable draws
+4. **Remaining deck composition**: Computed relative to the initial 108-card Uno deck
+
+This allows the agent to maintain a **probabilistic belief state** over the unknown hands of players 1–3.
