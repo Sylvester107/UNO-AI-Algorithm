@@ -55,16 +55,3 @@ If a player plays a Wild Draw Four card, the following player can challenge its 
 
 The player who used the Wild Draw Four must privately show their hand to the challenging player, in order to demonstrate that they had no matching colored cards. If the challenge is correct, then the challenged player draws four cards instead. If the challenge is wrong, then the challenger must draw six cards; the four cards they were already required to draw plus two more cards.
 
-
-
-# Natural language description of GameState
-A Gamestate Includes
-- player Information: Each player's hands(cards), score and whether they are a bot( a bot in this case is the other players our algorithm will be playing with)
-
-- Deck state: Draw pile(ordered List of cards), discard pile(top card is visible)
-
-- Turn state: current player index (pnow), play direction(clockwise but can go anticlockwise), active color(colornow), last color(last color)
-
-- Command state: whether the toop discard's command is still active(commandsvalid)
-
-- Round state: current round number
