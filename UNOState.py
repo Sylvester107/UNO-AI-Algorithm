@@ -1,8 +1,8 @@
 """
-UNOState.py - Bridge between uno.py game implementation and Transitions.py search space.
+UNOState.py : this brigdes  uno.py game implementation and Transitions.py search space.
 
 This module converts UnoCardGameState (from uno.py) to UNOState (from Transitions.py)
-for use in search algorithms like MCTS.
+for use in search algorithms: MCTS in our case.
 
 Dependencies:
 - Transitions.py: Provides UNOState, UNOAction, ActionType, UNOObservation
