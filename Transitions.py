@@ -4,6 +4,7 @@ State/action containers and transition helper for the UNO search space.
 Transitions: S' <- T(S,A)
 
 - Means, in state S, take action A, will go to state S'
+- This is what generates the next state from the current state and the action
 
     Including transitions:
     - Cur_Top' = A.V_Card
@@ -13,6 +14,12 @@ Transitions: S' <- T(S,A)
     - Sum_Plus' += k, where k={2,4}, when A=A.Plus_N
     - Hand_Cards' = Hand_Cards.append(card), when A = A.GNC
     - UNO' = 1, when A = A.UNO
+
+Observations: O <- O(S, A, S')
+
+- Returns observable information from state-action -> state_transitions
+- Based on partial observability: Player 0 knows own hand fully, 
+  but only knows opponent hand sizes (not card identities)
 """
 
 from __future__ import annotations
@@ -53,6 +60,37 @@ class UNOAction:
     card: Optional[str] = None
     next_color: Optional[str] = None
     plus_value: int = 0
+
+
+@dataclass(frozen=True)
+class UNOObservation:
+    """
+    Observable information from state-action -> state_transitions.
+    
+    Based on partial observability:
+    - Player 0's own hand: fully known
+    - Opponent hands: only sizes known (not card identities)
+    - Public game state: cur_top, cur_color, cur_dir, etc.
+    """
+    # Own hand (fully observable for Player 0)
+    own_hand: Tuple[str, ...]
+    
+    # Opponent hand sizes (observable, but not card identities)
+    opponent_hand_sizes: Tuple[int, ...]
+    
+    # Public game state
+    cur_top: Optional[str]  # Top card on discard pile
+    cur_color: Optional[str]  # Current active color
+    cur_dir: int  # Play direction (+1 clockwise, -1 counter-clockwise)
+    skip: bool  # Whether next player is skipped
+    sum_plus: int  # Accumulated draw cards
+    uno: bool  # Whether UNO was called
+    
+    # Action taken (observable)
+    action_taken: UNOAction
+    
+    # Belief state (probabilistic distribution over opponent hands)
+    belief: Tuple[Tuple[str, ...], ...]
 
 
 def transition(state: UNOState, action: UNOAction) -> UNOState:
@@ -100,6 +138,37 @@ def transition(state: UNOState, action: UNOAction) -> UNOState:
     raise ValueError(f"Unsupported action type: {action.type}")
 
 
+def observation(state: UNOState, action: UNOAction, next_state: UNOState) -> UNOObservation:
+    """
+    Generate observation from state-action -> state_transitions.
+    
+    Returns observable information based on partial observability:
+    - Player 0's own hand is fully known
+    - Opponent hands: only sizes are known (not card identities)
+    - Public game state is observable
+    
+    Args:
+        state: Previous state S
+        action: Action A taken
+        next_state: Resulting state S' after transition
+    
+    Returns:
+        UNOObservation containing all observable information
+    """
+    return UNOObservation(
+        own_hand=next_state.hand_cards,  # Player 0's hand (fully observable)
+        opponent_hand_sizes=next_state.opponents_cards_num,  # Only sizes observable
+        cur_top=next_state.cur_top,  # Top discard card (public)
+        cur_color=next_state.cur_color,  # Current color (public)
+        cur_dir=next_state.cur_dir,  # Play direction (public)
+        skip=next_state.skip,  # Skip status (public)
+        sum_plus=next_state.sum_plus,  # Accumulated draw cards (public)
+        uno=next_state.uno,  # UNO status (public)
+        action_taken=action,  # Action that was taken (observable)
+        belief=next_state.belief,  # Belief state over opponent hands
+    )
+
+
 def _remove_card(hand: Tuple[str, ...], card: str) -> Tuple[str, ...]:
     """Return a new tuple with one instance of `card` removed."""
     removed = False
@@ -112,3 +181,7 @@ def _remove_card(hand: Tuple[str, ...], card: str) -> Tuple[str, ...]:
     if not removed:
         raise ValueError(f"Card {card} not found in hand")
     return tuple(updated)
+
+# Example usage:
+# next_state = transition(current_state, action)
+# obs = observation(current_state, action, next_state)
