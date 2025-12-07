@@ -6,7 +6,6 @@ It possesses two classes - TreeNode and MCTS - that together facilitate the sear
 # TODO: Explain the TreeNode and MCTS classes and their methods/defines.
 """
 import actions
-import Transitions
 import UNOState
 
 import math
@@ -56,7 +55,13 @@ class TreeNode:
 		return best
 
 
-	def expand():
+	def expand(self):
+		action = self.untried_actions.pop()
+		next_state = deepcopy(self.state)
+		child = TreeNode(next_state, parent=self, action_from_parent=action)
+		self.children.append(child)
+		return child
+
 
 """
 Example usage of MCTS.
