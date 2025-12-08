@@ -115,7 +115,7 @@ def get_legal_actions(state: UNOState, available_draw_cards: Optional[List[str]]
       are determined by the card type itself. The transition function handles these.
     - NEXT_COLOR actions are generated separately after playing a Wild card using
       get_color_choice_actions().
-    - For Wild cards, you'll need to play V_CARD first, then NEXT_COLOR.
+    - For Wild cards, we'll need to play V_CARD first, then NEXT_COLOR.
     
     Args:
         state: Current game state
@@ -153,7 +153,6 @@ def get_legal_actions(state: UNOState, available_draw_cards: Optional[List[str]]
                 actions.append(UNOAction(type=ActionType.GET_NEW_CARD, card=drawn_card))
         else:
             # Unknown draw - create a placeholder action
-            # In practice, you'd need to sample from the deck or use belief state
             actions.append(UNOAction(type=ActionType.GET_NEW_CARD, card=None))
     
     # UNO action: must be called when down to 1 card (after playing second-to-last)
@@ -301,7 +300,7 @@ if __name__ == "__main__":
     )
     
     legal_actions = get_legal_actions(example_state)
-    print(f"Legal actions from example state: {len(legal_actions)}")
+    print(f"Legal actions from example state: {len(legal_actions)} actions")
     for action in legal_actions:
         print(f"  - {action.type.name}: {action.card}")
 

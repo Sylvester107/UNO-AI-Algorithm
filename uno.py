@@ -1,3 +1,6 @@
+# Assert: the origin uno.py is from rosettacode: https://rosettacode.org/wiki/Uno_%28Card_Game%29/Python
+# We modify the original uno.py to add MCTS integration.
+
 import tkinter as tk
 from tkinter import messagebox, scrolledtext
 from random import shuffle, choice
@@ -5,6 +8,27 @@ from random import random as rand
 from time import sleep
 from threading import Thread
 from collections import deque
+import argparse
+import sys
+
+# MCTS integration (optional - only import if MCTS is available)
+# Delay import to avoid circular dependency issues
+MCTS_AVAILABLE = False
+MCTSPlayer = None
+
+def _import_mcts():
+    """Lazy import of MCTS to avoid circular dependencies."""
+    global MCTS_AVAILABLE, MCTSPlayer
+    if MCTS_AVAILABLE:
+        return  # Already imported
+    
+    try:
+        from mcts_integration import MCTSPlayer as MCTSPlayerClass
+        MCTSPlayer = MCTSPlayerClass
+        MCTS_AVAILABLE = True
+    except (ImportError, Exception):
+        MCTS_AVAILABLE = False
+        MCTSPlayer = None
 """ channel is a queue which communicates player's mouse choice of card or color to game logic """
 channel = []
 
@@ -173,6 +197,12 @@ class UnoCardGameState:
                 shuffle(temp)
                 self.drawpile = temp
                 self.discardpile = [self.discardpile[-1]]
+        
+        # Update MCTS belief if opponent drew cards
+        if MCTS_AVAILABLE and MCTS_PLAYER is not None and self.pnow > 0:
+            from Transitions import UNOAction, ActionType
+            action = UNOAction(type=ActionType.GET_NEW_CARD, card=None)
+            MCTS_PLAYER.update_belief(self, action, self.pnow)
 
         if self.pnow == 0:
             displaychanged[1] = True
@@ -188,6 +218,15 @@ class UnoCardGameState:
         self.discardpile.append(hand.pop())
         lastdiscard = self.discardpile[-1]
         logline(f"Player {self.players[self.pnow].name} discarded {str(lastdiscard)}")
+        
+        # Update MCTS belief if opponent played a card
+        if MCTS_AVAILABLE and MCTS_PLAYER is not None and self.pnow > 0:
+            from Transitions import UNOAction, ActionType
+            from UNOState import card_to_string
+            card_str = card_to_string(lastdiscard)
+            action = UNOAction(type=ActionType.V_CARD, card=card_str)
+            MCTS_PLAYER.update_belief(self, action, self.pnow)
+        
         self.lastcolor = self.colornow
         if lastdiscard.cardcolor == 'Wild':  # wild card discard, so choose a color to be colornow
             self.choosecolor()
@@ -226,34 +265,90 @@ class UnoCardGameState:
             return
         else:  # num card, or command card is already used
             if len(indices) == 0:
+                logline(f'[{name}] No playable cards, drawing...')
                 self.drawcardsfromdeck(1)  # draw, then discard if drawn card is a match
                 indices  = self.playableindices()
                 if len(indices) > 0:
-                    logline('Drawn card was discardable.')
+                    drawn_card = self.players[self.pnow].hand[indices[0]]
+                    logline(f'[{name}] Drawn card was playable: {str(drawn_card)}')
                     self.discard(indices[0])
 
             elif name[:3] != 'Bot':  # not bot, so player moves
-                logline('Click on a card to play.')
-                flushchannel()
-                while True:
-                    if len(channel) > 0:
-                        item = channel.pop(0)
-                        if item in indices:
-                            self.discard(item)
-                            break
-                        else:
-                            logline('That card is not playable.')
-
+                # Use MCTS if available and enabled
+                if USE_MCTS and MCTS_PLAYER is not None:
+                    logline(f'[Player 0] MCTS is thinking... (hand: {len(hand)} cards)')
+                    top.update()
+                    
+                    # Get action from MCTS
+                    card_index = MCTS_PLAYER.get_action(self)
+                    
+                    if card_index is not None and card_index in indices:
+                        # Get card before discarding (for belief update)
+                        from UNOState import card_to_string
+                        from Transitions import UNOAction, ActionType
+                        card = self.players[self.pnow].hand[card_index]
+                        card_str = card_to_string(card)
+                        
+                        # Play the card chosen by MCTS
+                        self.discard(card_index)
+                        logline(f'[Player 0] MCTS chose to play: {card_str}')
+                        
+                        # Update belief after playing (card already discarded, so use discard pile)
+                        action = UNOAction(type=ActionType.V_CARD, card=card_str)
+                        MCTS_PLAYER.update_belief(self, action, 0)  # Player 0
+                    elif len(indices) == 0:
+                        # No playable cards, must draw
+                        self.drawcardsfromdeck(1)
+                        logline('[Player 0] MCTS chose to draw a card')
+                        
+                        # Update belief after drawing
+                        from Transitions import UNOAction, ActionType
+                        action = UNOAction(type=ActionType.GET_NEW_CARD, card=None)
+                        MCTS_PLAYER.update_belief(self, action, 0)  # Player 0
                     else:
-                        sleep(0.1)
-                        top.update()
+                        logline('[Player 0] MCTS returned invalid action, falling back to manual')
+                        # Fall back to manual clicking
+                        logline('Click on a card to play.')
+                        flushchannel()
+                        while True:
+                            if len(channel) > 0:
+                                item = channel.pop(0)
+                                if item in indices:
+                                    self.discard(item)
+                                    break
+                                else:
+                                    logline('That card is not playable.')
+                            else:
+                                sleep(0.1)
+                                top.update()
+                else:
+                    # Manual clicking (original behavior)
+                    logline('Click on a card to play.')
+                    flushchannel()
+                    while True:
+                        if len(channel) > 0:
+                            item = channel.pop(0)
+                            if item in indices:
+                                self.discard(item)
+                                break
+                            else:
+                                logline('That card is not playable.')
+
+                        else:
+                            sleep(0.1)
+                            top.update()
 
             elif self.nextsaiduno():  # bot might need to stop next player win
                 hand.sort(key=cardvalue)
                 indices = self.playableindices()
+                played_card = self.players[self.pnow].hand[indices[-1]]
                 self.discard(indices[-1])
+                logline(f'[{name}] Bot played {str(played_card)} (blocking opponent)')
             else: # bot play any playable in hand
-                self.discard(choice(indices))
+                chosen_idx = choice(indices)
+                played_card = self.players[self.pnow].hand[chosen_idx]
+                self.discard(chosen_idx)
+                logline(f'[{name}] Bot played {str(played_card)}')
 
         if len(hand) == 1:
             logline(f"{name} says UNO!")
@@ -267,7 +362,8 @@ class UnoCardGameState:
         hand = self.players[self.pnow].hand
         if len(hand) == 0:
             self.colornow = choice(colors)
-        elif self.players[self.pnow].isabot:
+        elif self.players[self.pnow].isabot or (USE_MCTS and self.pnow == 0 and MCTS_PLAYER is not None):
+            # If Player 0 is controlled by MCTS, auto-pick color instead of waiting for UI input
             self.colornow = preferredcolor(hand)
         else:
             # For non-bot players, try GUI first, fallback to auto-choice if GUI unavailable
@@ -378,6 +474,10 @@ canvas.pack()
 
 """ Lines are logged by extending logtxt at its start. """
 def logline(txt):
+    # Always print to console/command line
+    print(f"[LOG] {txt}")
+    
+    # Also update GUI if available
     try:
         # Check if GUI is available (log_area exists and is valid)
         if 'log_area' in globals():
@@ -385,14 +485,10 @@ def logline(txt):
                 if log_area.winfo_exists():
                     log_area.insert('1.0', '\n' + txt)
                     log_area.update()
-                    return
             except (tk.TclError, AttributeError):
-                pass  # Widget destroyed or invalid, fall through to print
-        # Fallback: print to console when GUI is not available
-        print(f"[LOG] {txt}")
+                pass  # Widget destroyed or invalid, fall through
     except (NameError, Exception):
-        # GUI widget doesn't exist or any other error - use console output
-        print(f"[LOG] {txt}")
+        pass  # GUI widget doesn't exist, that's okay
 
 # Removed unused cbutton() function
 
@@ -462,10 +558,111 @@ def drawposition(canvas, game):
         displaychanged[1] = False
     sleep(0.5)
 
+# Parse command line arguments
+def parse_arguments():
+    """Parse command line arguments for MCTS parameters."""
+    parser = argparse.ArgumentParser(
+        description='UNO Game with MCTS AI',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '--gamma', 
+        type=float, 
+        default=0.99,
+        help='Discount factor for MCTS (default: 0.99)'
+    )
+    parser.add_argument(
+        '--c_param', 
+        type=float, 
+        default=1.4,
+        help='UCB1 exploration parameter for MCTS (default: 1.4)'
+    )
+    parser.add_argument(
+        '--max_depth', 
+        type=int, 
+        default=20,
+        help='Maximum depth for MCTS rollout (default: 20)'
+    )
+    parser.add_argument(
+        '--num_particles', 
+        type=int, 
+        default=100,
+        help='Number of belief particles for POMDP (default: 100)'
+    )
+    parser.add_argument(
+        '--num_simulations', 
+        type=int, 
+        default=500,
+        help='Number of MCTS simulations per decision (default: 500)'
+    )
+    parser.add_argument(
+        '--use_mcts', 
+        action='store_true',
+        default=True,
+        help='Use MCTS for Player 0 (default: True)'
+    )
+    parser.add_argument(
+        '--no_mcts', 
+        action='store_false',
+        dest='use_mcts',
+        help='Disable MCTS and use manual clicking'
+    )
+    parser.add_argument(
+        '--num_rounds', 
+        type=int, 
+        default=10,
+        help='Number of rounds to play (default: 10)'
+    )
+    
+    return parser.parse_args()
+
+# Parse arguments
+args = parse_arguments()
+
+# Global variables for tracking game statistics
+NUM_ROUNDS_TARGET = args.num_rounds
+rounds_played = 0
+player_0_wins = 0
+
 # Run the game itself.
 
 GAME = UnoCardGameState()
 ROUND = [1]
+
+# Try to import MCTS now (after argparse, before game starts)
+_import_mcts()
+
+# Initialize MCTS player if available
+if MCTS_AVAILABLE and args.use_mcts:
+    MCTS_PLAYER = MCTSPlayer(
+        gamma=args.gamma,
+        c_param=args.c_param,
+        max_depth=args.max_depth,
+        num_particles=args.num_particles,
+        num_simulations=args.num_simulations
+    )
+    USE_MCTS = True
+    print(f"\n{'='*60}")
+    print(f"MCTS Player initialized with parameters:")
+    print(f"  gamma: {args.gamma}")
+    print(f"  c_param: {args.c_param}")
+    print(f"  max_depth: {args.max_depth}")
+    print(f"  num_particles: {args.num_particles}")
+    print(f"  num_simulations: {args.num_simulations}")
+    print(f"  USE_MCTS: {USE_MCTS}")
+    print(f"{'='*60}\n")
+else:
+    MCTS_PLAYER = None
+    USE_MCTS = False
+    if not MCTS_AVAILABLE:
+        print("WARNING: MCTS not available. Falling back to manual clicking.\n")
+    else:
+        print("MCTS disabled. Using manual clicking.\n")
+
+# Global variables for tracking game statistics
+NUM_ROUNDS_TARGET = args.num_rounds
+rounds_played = 0
+player_0_wins = 0
 
 class UnoGameApp(Thread):
     def __init__(self):
@@ -473,13 +670,15 @@ class UnoGameApp(Thread):
         super().__init__()
 
     def run(self):
+        global rounds_played, player_0_wins
+        
         while True:
             # do the turns of play in the game, keeping score totals from the rounds
             drawposition(canvas, GAME)
             canvas.update()
             if all([len(x.hand) > 0 for x in GAME.players]):
                 GAME.turn()
-                if GAME.players[GAME.pnow].name[:4] == "Play" and \
+                if not USE_MCTS and GAME.players[GAME.pnow].name[:4] == "Play" and \
                     GAME.discardpile[-1].cardtype == "Draw Four" and GAME.commandsvalid:
                     drawposition(canvas, GAME)
                     messagebox.showinfo(title=None,
@@ -501,11 +700,40 @@ class UnoGameApp(Thread):
                 handsums = sum([handscore(x.hand) for x in GAME.players])
                 GAME.players[winner].score += handsums
 
+                # Track wins
+                rounds_played += 1
+                if winner == 0:
+                    player_0_wins += 1
+                
                 logline(f"Player {GAME.players[winner].name} wins round {ROUND[0]}!")
+                logline(f"Round {rounds_played}/{NUM_ROUNDS_TARGET} - Player 0 wins: {player_0_wins}/{rounds_played}")
                 messagebox.showinfo(title=None,
                     message=f"The winner of round {ROUND[0]} is {GAME.players[winner].name}.\n" + \
                     f"Winner gains {handsums} points.")
                 logline(f"Scores: {[x.score for x in GAME.players]}")
+                
+                # Check if we've played enough rounds
+                if rounds_played >= NUM_ROUNDS_TARGET:
+                    logline(f"\n{'='*60}")
+                    logline(f"Game Statistics:")
+                    logline(f"  Total rounds played: {rounds_played}")
+                    logline(f"  Player 0 (MCTS) wins: {player_0_wins}")
+                    logline(f"  Win rate: {player_0_wins/rounds_played*100:.1f}%")
+                    # logline(f"  Target: {NUM_ROUNDS_TARGET-1}/{NUM_ROUNDS_TARGET} wins")
+
+                    
+                    if any([x.score >= 500 for x in GAME.players]):
+                        s = "Game over. Scores:\n\n"
+                        for p in GAME.players:
+                            s += f"   {p.name}:  {p.score}  {'WINNER!' if p.score >= 500 else ''}\n"
+                        messagebox.showinfo(title="Game Over", message=s)
+                    else:
+                        messagebox.showinfo(title="Rounds Complete", 
+                            message=f"Completed {NUM_ROUNDS_TARGET} rounds.\n" +
+                            f"Player 0 won {player_0_wins} out of {rounds_played} rounds.")
+                    sleep(2)
+                    exit()
+
                 if any([x.score >= 500 for x in GAME.players]):
                     s = "Game over. Scores:\n\n"
                     for p in GAME.players:
@@ -518,6 +746,11 @@ class UnoGameApp(Thread):
                 logline("-------------------------\nNew round!\n-----------------------")
                 GAME.nextgame()
                 ROUND[0] += 1
+                
+                # Reset MCTS belief for new round
+                if MCTS_AVAILABLE and MCTS_PLAYER is not None:
+                    MCTS_PLAYER.reset()
+                
                 drawposition(canvas, GAME)
                 sleep(0.1)
 
