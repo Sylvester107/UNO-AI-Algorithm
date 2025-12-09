@@ -1,4 +1,4 @@
-# UNO Game with MCTS AI - User Guide
+# UNO Game with MCTS AI - Report and User Guide
 
 ## Overall
 This project implements an intelligent decision-making agent for the UNO game using Monte Carlo Tree Search (MCTS) in Python.
@@ -11,7 +11,7 @@ The project proposal link: https://docs.google.com/document/d/1lqPSJrU0hT_-SkirG
 
 The project deployment to website link: https://sylvester107.github.io/UNO-AI-Algorithm/
 
-## Problem statement
+## Problem statement and motivaton
 As a player in the UNO game, we always want to win the game. But sometimes we human are not always making optimal choice to play the cards. So let's use a better algorithm to help us win the game!
 
 The rules of the game (what is a UNO game) can be learned by: **Game_description.md** We have 4 players in the game, the **player 0 will be the MCTS agent**, and player 1, player 2, and player 3 will be run without MCTS -- only base on rosetta basic logic.
@@ -150,20 +150,42 @@ O(S) = (Cur_Col, Cur_Dir, Cur_Top, Skip, Sum_Plus, Hand_Cards, Opponents_Cards_N
 ## Solution method
 We are using Monte Carlo Tree Search(MCTS). Detailly, with the algorithm inside is the UCB1 and POMDP, with practicle filter to get the belif of opponent's hand cards.
 
-## Quick Start
+## Measure the success
+I would like to say, winning all the game round will be the goal. But we can set 60% wins can be the threshold.
 
-### Basic Usage
+# Quick Start
+
+## Dependencies
+The following Python libraries are required (all are standard library, **so no need to install any other libraries**):
+- `tkinter` (GUI, usually included with Python)
+- `argparse` (command-line argument parsing, Python standard library)
+- `threading` (multithreading, Python standard library)
+- `random`, `time`, `collections`, `dataclasses`, `enum`, `typing`, `copy`, `math` (standard library)
+
+## File Structure
+
+Main game files:
+- `uno.py`: Main game file and GUI
+- `MCTS.py`: MCTS algorithm implementation
+- `mcts_integration.py`: Integration of MCTS with the game
+- `UNOState.py`: Game state representation and belief management
+- `Transitions.py`: State transition functions
+- `actions.py`: Action definitions and legality checking
+## Basic Usage
 
 ```bash
 # Run the game with default parameters
 python uno.py
 ```
 
-### View Help Information
+## View Help Information
 
 ```bash
 python uno.py --help
 ```
+## The initial page of the game
+It will jump up a window, to show you the rules of the UNO game, you can use the keyboard "Return/Enter" to close this window. And then the agents will run automatically!
+![The initial page of the game](images/Game_is_starting.png)
 
 ## Command Line Arguments
 
@@ -335,22 +357,7 @@ MCTS Player initialized with parameters:
 ...
 ```
 **Here is one of the output example**
+
+You can use keyboard "Return/Enter" to close the window and continue the next round of game!
 ![An example output](images/Output_example.png)
 
-
-### Dependencies
-The following Python libraries are required (all are standard library):
-- `tkinter` (GUI, usually included with Python)
-- `argparse` (command-line argument parsing, Python standard library)
-- `threading` (multithreading, Python standard library)
-- `random`, `time`, `collections`, `dataclasses`, `enum`, `typing`, `copy`, `math` (standard library)
-
-## File Structure
-
-Main game files:
-- `uno.py`: Main game file and GUI
-- `MCTS.py`: MCTS algorithm implementation
-- `mcts_integration.py`: Integration of MCTS with the game
-- `UNOState.py`: Game state representation and belief management
-- `Transitions.py`: State transition functions
-- `actions.py`: Action definitions and legality checking
