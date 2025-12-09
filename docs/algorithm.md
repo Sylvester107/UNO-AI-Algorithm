@@ -22,22 +22,25 @@ Cards are (color, type) with standard UNO colors and types.
 ### Transition
 
 A **transition** applies a chosen action to the current UNO state to produce the next state.
+
 **Actions include:** playing a card, choosing a color after a wild, adding draw penalties (+2/+4), skipping, reversing direction, drawing a card, and declaring UNO.
 
 Playing a card updates the top discard, sets the active color (unless it’s a wild), triggers its effect (skip, reverse, draw penalties), and advances turn order according to the effect and direction.
 Choosing a color finalizes a wild play; draw actions add the drawn card to your hand; skip/reverse/draw penalties adjust who moves next and how many cards must be taken.
+
 An **observation** is the “what we can see” snapshot after a transition: agent's hand, opponents’ hand sizes (just counts), current top card/color, direction, skip status, accumulated draw penalties, whether UNO was called, and who acted. This fuels belief updates about hidden opponent cards.
 
 ### Decision logic
 - Build a search tree from the current state. Each edge is an action; each node is a possible game state.
 - Simulate many playouts:
-**Selection:** Follow the tree along the best-looking child nodes (balancing “tried and good” vs “not tried yet”).
-**Expansion:** When a node still has untried actions for Player 0, pick one, apply a transition, and add the resulting state as a child.
+- **Selection:** Follow the tree along the best-looking child nodes (balancing “tried and good” vs “not tried yet”).
 
-**Rollout:** From there, play out the game randomly (within rules) until a depth limit or someone wins. For opponents, sample likely hands from your belief and make plausible plays or draws.
+- **Expansion:** When a node still has untried actions for Player 0, pick one, apply a transition, and add the resulting state as a child.
+
+- **Rollout:** From there, play out the game randomly (within rules) until a depth limit or someone wins. For opponents, sample likely hands from your belief and make plausible plays or draws.
 Belief updates: After each simulated action, form an observation (what was seen) and update the guessed distributions of opponent hands.
 
-**Backpropagation:** If Player 0 wins the simulated playout, propagate that success back up the path; otherwise propagate failure. Discount future rewards to favor nearer wins.
+- **Backpropagation:** If Player 0 wins the simulated playout, propagate that success back up the path; otherwise propagate failure. Discount future rewards to favor nearer wins.
 After many simulations, pick the action from the root whose child was visited the most. This is the decision the MCTS recommends, using the accumulated experience of simulated games and belief updates about hidden cards.
 
 ### 3. Training our simulation
