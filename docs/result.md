@@ -22,9 +22,6 @@ This would allow ranking actions by expected value and selecting based on risk t
 
 ## Demo
 
-
-here is a demo of our algorithm playing the game
-=======
 Here is a demo of our algorithm playing the game
 We played 1 round with num_simulations = 50 for faster game play
 It won!!
