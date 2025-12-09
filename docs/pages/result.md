@@ -19,3 +19,12 @@ These probabilities can be derived from:
 - **Win rate estimates** (proportion of simulations that led to wins)
 
 This would allow ranking actions by expected value and selecting based on risk tolerance or other criteria, rather than always picking the single most-visited action.
+
+## Demo
+
+here is a demo of our algorithm playing the game
+<iframe width="560" height="315"
+src="https://youtu.be/5Gujk1apuf4"
+title="YouTube video player"
+frameborder="0"
+allowfullscreen></iframe>
