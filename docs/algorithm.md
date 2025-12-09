@@ -57,8 +57,7 @@ With 80% chance, plays a random playable card (if any); otherwise draws.
 If a wild is played, it picks a random color.
 Drawing a card in rollouts is stubbed as “draw a random color/type,” not sampled from the exact remaining deck.
 
-- **Belief Handling** : Belief handling (partial observability): Before each playout, it picks one belief particle (a hypothetical deal of opponent cards). After each simulated action, it forms an observation (what would be visible: top card, color, who acted, whether someone drew, etc.) and updates the belief set to stay consistent with observed info.
-
+- **Belief Handling** : Belief handling (partial observability): Before each playout, it copies the entire belief particle set. During the rollout, whenever an opponent action needs to be simulated, it samples an opponent hand from the current belief particles. After each simulated action, it forms an observation and updates the entire belief particle set using particle filtering to stay consistent with observed information.
 - **Depth Limited:**  Rollouts stop at max_depth (default 20). If no win/loss is reached by then, that playout counts as a failure for Player 0.
 
 - **Reward function:**
