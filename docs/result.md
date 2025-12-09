@@ -23,6 +23,7 @@ This would allow ranking actions by expected value and selecting based on risk t
 ## Demo
 
 here is a demo of our algorithm playing the game
+
 <iframe width="560" height="315"
 src="https://youtu.be/5Gujk1apuf4"
 title="YouTube video player"
