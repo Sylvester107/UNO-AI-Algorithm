@@ -1,5 +1,6 @@
 title: Autonomous UNO AI Agent
 author: Zeyuan Yang, Sylvester Ampomah, William Gumirov
-theme: just-the-docs
+remote_theme: just-the-docs/just-the-docs
+plugins:
+  - jekyll-remote-theme
 baseurl: /UNO-AI-Algorithm
-
