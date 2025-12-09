@@ -26,8 +26,4 @@ Here is a demo of our algorithm playing the game
 We played 1 round with num_simulations = 50 for faster game play
 It won!!
 
-<iframe width="560" height="315"
-src="https://youtu.be/5Gujk1apuf4"
-title="YouTube video player"
-frameborder="0"
-allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/5Gujk1apuf4?si=ssggcx1Jf16sQX-3" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
