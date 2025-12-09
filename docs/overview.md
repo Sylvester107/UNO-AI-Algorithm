@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Project Overview
-nav_order: 2
+nav_order: 3
 ---
 ## The Game 👾
 - we designed an algorithm to pplay the UNO Game these are the rules of the Game:

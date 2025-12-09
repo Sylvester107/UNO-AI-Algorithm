@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Team
-nav_order: 5
+nav_order: 6
 ---
 
 - **Zeyuan Yang** - project idea, Rosseta Code, UNOState mcts_integration, gameplay guidance

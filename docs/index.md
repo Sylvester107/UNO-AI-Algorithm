@@ -13,6 +13,7 @@ This website explains
 
 # Hardware requirements
 Minimum System Requirements:
+
 - CPU: Modern multi-core processor (Intel Core i5 or AMD Ryzen 5 equivalent or better)
 - RAM: 4 GB minimum, 8 GB recommended
 - Storage: ~500 MB for Python dependencies and project files
@@ -20,7 +21,7 @@ Minimum System Requirements:
 
 # Motivation
 
-As part of our AI class requirements, we needed to solve a non-trivial sequential decision problem. We chose UNO because it’s engaging and presents several technical challenges that align with core AI concepts. such as:
+As part of our AI class requirements, we needed to solve a non-trivial sequential decision problem. We chose UNO because it’s engaging and presents several technical challenges that align with core AI concepts such as:
 
 - sequential decision making
 - partial observability

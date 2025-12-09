@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Algorithm design
-nav_order: 3
+nav_order: 4
 ---
 
 ## Design idea
